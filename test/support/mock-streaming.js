@@ -35,6 +35,17 @@ const quote_apple = {
   z: "C",
 };
 
+const status_AAPL = {
+  T: "s",
+  S: "AAPL",
+  sc: "StatusCode",
+  sm: "StatusMessage",
+  rc: "ReasonCode",
+  rm: "ReasonMessage",
+  t: "Timestamp",
+  z: "Tape",
+};
+
 class StreamingWsMock {
   constructor(port) {
     this.httpsServer = https.createServer({
@@ -64,6 +75,8 @@ class StreamingWsMock {
       trades: [],
       quotes: [],
       bars: [],
+      dailyBars: [],
+      statuses: [],
     };
   }
 
@@ -102,6 +115,14 @@ class StreamingWsMock {
     this.subscriptions.trades = [...this.subscriptions.trades, ...msg.trades];
     this.subscriptions.quotes = [...this.subscriptions.quotes, ...msg.quotes];
     this.subscriptions.bars = [...this.subscriptions.bars, ...msg.bars];
+    this.subscriptions.dailyBars = [
+      ...this.subscriptions.dailyBars,
+      ...msg.dailyBars,
+    ];
+    this.subscriptions.statuses = [
+      ...this.subscriptions.statuses,
+      ...msg.statuses,
+    ];
     socket.send(JSON.stringify(this.createSubMsg()));
     this.streamData(socket);
   }
@@ -118,6 +139,12 @@ class StreamingWsMock {
     );
     this.subscriptions.bars = this.subscriptions.bars.filter(
       (val) => msg.bars.indexOf(val) === -1
+    );
+    this.subscriptions.dailyBars = this.subscriptions.dailyBars.filter(
+      (val) => msg.dailyBars.indexOf(val) === -1
+    );
+    this.subscriptions.statuses = this.subscriptions.statuses.filter(
+      (val) => msg.statuses.indexOf(val) === -1
     );
     socket.send(JSON.stringify(this.createSubMsg()));
   }
@@ -145,6 +172,8 @@ class StreamingWsMock {
         trades: this.subscriptions.trades,
         quotes: this.subscriptions.quotes,
         bars: this.subscriptions.bars,
+        dailyBars: this.subscriptions.dailyBars,
+        statuses: this.subscriptions.statuses,
       },
     ];
   }
@@ -155,6 +184,9 @@ class StreamingWsMock {
     }
     if (this.subscriptions.quotes.length > 0) {
       socket.send(JSON.stringify([quote_apple]));
+    }
+    if (this.subscriptions.statuses.length > 0) {
+      socket.send(JSON.stringify([status_AAPL]));
     }
   }
 

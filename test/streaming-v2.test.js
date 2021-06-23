@@ -89,6 +89,8 @@ describe("data_stream_v2", () => {
       trades: ["AAPL"],
       quotes: [],
       bars: ["GE"],
+      dailyBars: [],
+      statuses: [],
     });
 
     socket.subscribeForTrades(["AAPL"]);
@@ -101,7 +103,13 @@ describe("data_stream_v2", () => {
   });
 
   it("unsubscribe from symbol", async () => {
-    const expectedSubs = JSON.stringify({ trades: [], quotes: [], bars: [] });
+    const expectedSubs = JSON.stringify({
+      trades: [],
+      quotes: [],
+      bars: [],
+      dailyBars: [],
+      statuses: [],
+    });
 
     socket.unsubscribeFromTrades("AAPL");
     socket.unsubscribeFromBars(["GE"]);
@@ -155,6 +163,30 @@ describe("data_stream_v2", () => {
     });
 
     socket.subscribeForQuotes(["AAPL"]);
+
+    const res = await waitFor(() => {
+      return JSON.stringify(data) === parsed;
+    });
+    expect(res).to.be.true;
+  });
+
+  it("subscribe for status and parse it", async () => {
+    let data;
+    const parsed = JSON.stringify({
+      T: "s",
+      Symbol: "AAPL",
+      StatusCode: "StatusCode",
+      StatusMessage: "StatusMessage",
+      ReasonCode: "ReasonCode",
+      ReasonMessage: "ReasonMessage",
+      Timestamp: "Timestamp",
+      Tape: "Tape",
+    });
+
+    socket.onStatuses((s) => {
+      data = s;
+    });
+    socket.subscribeForStatuses(["AAPL"]);
 
     const res = await waitFor(() => {
       return JSON.stringify(data) === parsed;
